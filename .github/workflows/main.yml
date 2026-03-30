@@ -1,9 +1,21 @@
 name: GitHub Actions
 on:
   push:
-    branches: [ main develope rostyan alexey danil rostyan_buffer ]
+    branches: 
+      - main
+      - develope
+      - rostyan
+      - alexey
+      - danil
+      - rostyan_buffer
   pull_request:
-    branches: [ main develope rostyan alexey danil rostyan_buffer ]
+    branches: 
+      - main
+      - develope
+      - rostyan
+      - alexey
+      - danil
+      - rostyan_buffer
 
 jobs:
   build:
