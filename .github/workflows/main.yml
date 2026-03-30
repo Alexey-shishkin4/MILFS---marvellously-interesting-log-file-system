@@ -6,15 +6,14 @@ on:
       - develope
       - alexey
       - danil
-      - "rostyan/*"
-  
+      - "rostyan*"
   pull_request:
     branches: 
       - main
       - develope
       - alexey
       - danil
-      - "rostyan/*"
+      - "rostyan*"
 
 jobs:
   build:
