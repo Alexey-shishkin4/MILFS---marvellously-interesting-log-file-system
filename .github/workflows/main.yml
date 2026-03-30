@@ -4,18 +4,17 @@ on:
     branches: 
       - main
       - develope
-      - rostyan
       - alexey
       - danil
-      - rostyan_buffer
+      - "rostyan/*"
+  
   pull_request:
     branches: 
       - main
       - develope
-      - rostyan
       - alexey
       - danil
-      - rostyan_buffer
+      - "rostyan/*"
 
 jobs:
   build:
