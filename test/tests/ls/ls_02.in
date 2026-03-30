@@ -1,0 +1,13 @@
+mkdir folder1
+mkdir folder2
+mkdir folder3
+###
+create file1
+create file2
+create file3
+#####
+ls
+ls
+ls
+#
+exit

@@ -1,115 +1,94 @@
 #include <gtest/gtest.h>
-#include "../src/cli.cpp"
+#include <filesystem>
+#include <fstream>
+#include <sstream>
 
+int cli_main();
 
-class ParserCommandTest : public ::testing::Test  {
-public:
-    std::string st = "";
-    std::vector<std::string> input = {};
-    std::vector<std::string> output = {};
+namespace fs = std::filesystem;
 
-    void concatenateArr() {
-        if (input.empty()) { return; }
-        
-        st = input[0];
-        for (size_t i = 1; i < input.size(); i++) { st += " " + input[i]; }
-    }
-
-    void getTokens() {
-        concatenateArr();
-        output = parseCommand(st);
-    }
+// Pare: input_file <-> expected_output_file
+struct IoFilePair {
+    std::string input;
+    std::string expected;
 };
 
-
-TEST_F(ParserCommandTest, EmptyStringTest_01) {
-    input = {""};
-    getTokens();
-    EXPECT_TRUE(output.empty());
+std::string read_file(const std::string& path) {
+    std::ifstream f(path);
+    std::ostringstream oss;
+    oss << f.rdbuf();
+    return oss.str();
 }
 
-TEST_F(ParserCommandTest, EmptyStringTest_02) {
-    input = {" "};
-    getTokens();
-    EXPECT_TRUE(output.empty());
-}
+// collect all pares input/output
+std::vector<IoFilePair> collect_tests(const std::string& tests_dir, const std::string& extension_in, const std::string& extension_out) {
+    std::vector<IoFilePair> pairs;
 
-TEST_F(ParserCommandTest, EmptyStringTest_03) {
-    input = {"    ", " ", "", "                              "};
-    getTokens();
-    EXPECT_TRUE(output.empty());
-}
+    for (const auto& in_entry : fs::recursive_directory_iterator(tests_dir)) {
+        if (!in_entry.is_regular_file()) continue;
+        
+        fs::path in_path = in_entry.path();
 
-TEST_F(ParserCommandTest, EmptyStringTest_04) {
-    input = {"    ", " ", "", "                              ", "\n \t \n \n \n"};
-    getTokens();
-    EXPECT_TRUE(output.empty());
-}
+        if (in_path.extension() != extension_in) continue;
 
-TEST_F(ParserCommandTest, QuotesTest_01) {
-    input = {"\"zxc\""};
-    getTokens();
+        fs::path out_path = in_path;
+        out_path.replace_extension(extension_out);
 
-    EXPECT_FALSE(output.empty());
-    EXPECT_EQ(output, input);
-}
+        if (!fs::exists(out_path)) {
+            ADD_FAILURE() << "No output file \"" << out_path.string()
+                          << "\" for input \"" << in_path.string() << "\"";
+            continue;
+        }
 
-TEST_F(ParserCommandTest, QuotesTest_02) {
-    input = {"\" zxc  \""};
-    getTokens();
+        pairs.push_back({in_path.string(), out_path.string()});
+    }
 
-    EXPECT_FALSE(output.empty());
-    EXPECT_EQ(output, input);
-}
-
-TEST_F(ParserCommandTest, OneTokenTest_01) {
-    input = {"mkdir"};
-    getTokens();
-
-    ASSERT_FALSE(output.empty());
-    EXPECT_EQ(output, input);
-}
-
-TEST_F(ParserCommandTest, OneTokenTest_02) {
-    input = {"mkdir", ""};
-    std::vector<std::string> answer = {input[0]};
-    getTokens();
-
-    ASSERT_FALSE(output.empty());
-    EXPECT_EQ(output, answer);
-}
-
-TEST_F(ParserCommandTest, OneTokenTest_03) {
-    input = {"\n", "mkdir", "   "};
-    std::vector<std::string> answer = {input[1]};
-    getTokens();
-
-    ASSERT_FALSE(output.empty());
-    EXPECT_EQ(output, answer);
+    return pairs;
 }
 
 
-TEST_F(ParserCommandTest, MoreTokenTest_01) {
-    input = {"\n", "mkdir", "zxc"};
-    std::vector<std::string> answer = {input[1], input[2]};
-    getTokens();
+class CLITest : public ::testing::TestWithParam<IoFilePair> {};
 
-    ASSERT_FALSE(output.empty());
-    EXPECT_EQ(output, answer);
+TEST_P(CLITest, RunCLI) {
+    IoFilePair param = GetParam();
+
+    std::string input_str = read_file(param.input);
+    std::string expected  = read_file(param.expected);
+
+    std::istringstream input(input_str);
+    std::ostringstream output;
+    
+    auto* old_cin = std::cin.rdbuf(input.rdbuf());
+    auto* old_cout = std::cout.rdbuf(output.rdbuf());
+
+    cli_main();
+
+    std::cin.rdbuf(old_cin);
+    std::cout.rdbuf(old_cout);
+
+    EXPECT_EQ(output.str(), expected);
 }
 
-TEST_F(ParserCommandTest, MoreTokenTest_02) {
-    input = {"\n", "mkdir", "zxc", "\'axaxaxaxax\'"};
-    std::vector<std::string> answer = {input[1], input[2], input[3]};
-    getTokens();
-
-    ASSERT_FALSE(output.empty());
-    EXPECT_EQ(output, answer);
+void PrintTo(const IoFilePair& pair, ::std::ostream* os) {
+    *os << fs::path(pair.input).stem().string();
 }
 
+// Automatic generating tests input/output
+INSTANTIATE_TEST_SUITE_P(
+    CliTests,
+    CLITest,
+    ::testing::ValuesIn(
+        collect_tests(
+            MILFS_TESTS_DIR,            // look test/CMakeLists.txt
+            MILFS_TESTS_EXTENSION_IN,   // look test/CMakeLists.txt
+            MILFS_TESTS_EXTENSION_OUT   // look test/CMakeLists.txt
+        )
+    )
+);
 
-int main(int argc, char **argv)
-{
+
+
+int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

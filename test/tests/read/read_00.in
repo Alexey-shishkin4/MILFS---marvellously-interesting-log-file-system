@@ -1,0 +1,18 @@
+create file1
+create file2
+create file3
+###
+write file1 "it is ~/file1"
+write file2 "it is ~/file2"
+write file3 "it is ~/file3"
+#####
+read <path> 
+read "file1 "
+read "file2 "
+read "file3 "
+#
+read file1
+read file2
+read file3
+#
+exit

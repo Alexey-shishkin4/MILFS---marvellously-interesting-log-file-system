@@ -1,0 +1,34 @@
+MILFS CLI gateway. Enter 'help' for commands, 'exit' to quit.
+> (empty)
+> (empty)
+> Unknown command: ###
+> ok
+> folder1
+> ok
+> folder1
+folder2
+> ok
+> folder1
+folder2
+folder3
+> Unknown command: #####
+> ok
+> file1
+folder1
+folder2
+folder3
+> ok
+> file1
+file2
+folder1
+folder2
+folder3
+> ok
+> file1
+file2
+file3
+folder1
+folder2
+folder3
+> Unknown command: #
+> Exit from program!

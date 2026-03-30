@@ -1,0 +1,19 @@
+mkdir folder1
+mkdir folder2
+mkdir folder1/folder11
+mkdir folder1/folder11/folder111
+mkdir folder2/folder21
+#
+mkdir "folder1 "
+mkdir "folder2 "
+mkdir "folder1 "/" folder11"
+mkdir "folder1 "/" folder11"/" folder111 "
+mkdir "folder2 "/" folder21"
+#
+mkdir "folder1 "
+mkdir "folder2 "
+mkdir "folder1 / folder11"
+mkdir "folder1 / folder11/ folder111 "
+mkdir "folder2 / folder21"
+#
+exit

@@ -10,8 +10,8 @@ static FileSystemState g_fs;
 
 std::vector<std::string> parseCommand(const std::string& input) {
     std::string token;
-    char quote = 0;
     char c = 0;
+    char quote = 0;
     bool in_quote = false;
     std::vector<std::string> result;
 

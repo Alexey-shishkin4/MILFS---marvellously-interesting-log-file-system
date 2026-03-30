@@ -1,0 +1,109 @@
+create file1
+create file2
+create file3
+###
+mkdir   folder1
+create  folder1/file11
+#
+mkdir   folder1/folder11
+create  folder1/folder11/file111
+#
+mkdir   folder1/folder11/folder111
+create  folder1/folder11/folder111/file1111
+#
+mkdir   folder1/folder12
+create  folder1/folder12/file121
+create  folder1/folder12/file122
+create  folder1/folder12/file123
+#####
+mkdir   folder2
+create  folder2/file21
+#
+mkdir   folder2/folder21
+create  folder2/folder21/file211
+#
+mkdir   folder2/folder21/folder211
+create  folder2/folder21/folder211/file2111
+#
+mkdir   folder2/folder22
+create  folder2/folder22/file221
+create  folder2/folder22/file222
+create  folder2/folder22/file223
+#######
+mkdir   folder3
+create  folder3/file31
+#
+mkdir   folder3/folder31
+create  folder3/folder31/file311
+#
+mkdir   folder3/folder31/folder311
+create  folder3/folder31/folder311/file3111
+#
+mkdir   folder3/folder32
+create  folder3/folder32/file321
+create  folder3/folder32/file322
+create  folder3/folder32/file323
+#########
+ls
+###
+ls      folder1
+#
+ls      folder1/folder11
+#
+ls      folder1/folder11/folder111
+#
+ls      folder1/folder12
+#####
+ls      folder2
+#
+ls      folder2/folder21
+#
+ls      folder2/folder21/folder211
+#
+ls      folder2/folder22
+#######
+ls      folder3
+#
+ls      folder3/folder31
+#
+ls      folder3/folder31/folder311
+#
+ls      folder3/folder32
+#
+"========== CURRENT STATUS =========="
+"#    .                             #"
+"#    ├── file1                     #"
+"#    ├── file2                     #"
+"#    ├── file3                     #"
+"#    ├── folder1                   #"
+"#    |   ├── file11                #"
+"#    |   ├── folder11              #"
+"#    |   │   ├── file111           #"
+"#    |   │   └── folder111         #"
+"#    |   │       └── file1111      #"
+"#    |   └── folder12              #"
+"#    |       ├── file121           #"
+"#    |       ├── file122           #"
+"#    |       └── file123           #"
+"#    ├── folder2                   #"
+"#    |   ├── file21                #"
+"#    |   ├── folder21              #"
+"#    |   │   ├── file211           #"
+"#    |   │   └── folder211         #"
+"#    |   │       └── file2111      #"
+"#    |   └── folder22              #"
+"#    |       ├── file221           #"
+"#    |       ├── file222           #"
+"#    |       └── file223           #"
+"#    └── folder3                   #"
+"#        ├── file31                #"
+"#        ├── folder31              #"
+"#        │   ├── file311           #"
+"#        │   └── folder311         #"
+"#        │       └── file3111      #"
+"#        └── folder12              #"
+"#            ├── file321           #"
+"#            ├── file322           #"
+"#            └── file323           #"
+"===================================="
+exit

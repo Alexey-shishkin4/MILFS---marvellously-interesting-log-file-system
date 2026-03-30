@@ -1,0 +1,29 @@
+MILFS CLI gateway. Enter 'help' for commands, 'exit' to quit.
+> Available commands:
+  help                      - show this help
+  mkdir <path>              - create directory
+  create <path>             - create empty file
+  write <path> <data>       - write data to file
+  cat <path>                - print file contents
+  read <path>               - same as cat
+  ls [path]                 - list directory contents (default: /)
+  exit                      - exit program
+> Available commands:
+  help                      - show this help
+  mkdir <path>              - create directory
+  create <path>             - create empty file
+  write <path> <data>       - write data to file
+  cat <path>                - print file contents
+  read <path>               - same as cat
+  ls [path]                 - list directory contents (default: /)
+  exit                      - exit program
+> Available commands:
+  help                      - show this help
+  mkdir <path>              - create directory
+  create <path>             - create empty file
+  write <path> <data>       - write data to file
+  cat <path>                - print file contents
+  read <path>               - same as cat
+  ls [path]                 - list directory contents (default: /)
+  exit                      - exit program
+> Exit from program!

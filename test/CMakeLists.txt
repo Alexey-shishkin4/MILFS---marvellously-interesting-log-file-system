@@ -22,6 +22,12 @@ add_executable(${BINARY} ${TEST_SOURCES})
 target_compile_options(${BINARY} PRIVATE -g -O0 -fsanitize=address)
 target_link_options(${BINARY} PRIVATE -fsanitize=address)
 
+target_compile_definitions(${BINARY} PRIVATE
+    MILFS_TESTS_DIR="${CMAKE_SOURCE_DIR}/test/tests"
+    MILFS_TESTS_EXTENSION_IN=".in"
+    MILFS_TESTS_EXTENSION_OUT=""
+)
+
 gtest_discover_tests(${BINARY})
 
 target_link_libraries(${BINARY} PUBLIC ${CMAKE_PROJECT_NAME}_lib gtest gmock)

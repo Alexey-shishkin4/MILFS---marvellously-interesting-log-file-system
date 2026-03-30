@@ -1,0 +1,45 @@
+mkdir folder1
+mkdir folder2
+mkdir folder3
+#
+mkdir folder1/folder11
+mkdir folder2/folder21
+mkdir folder3/folder31
+###
+create file1
+create file2
+create file3
+#
+create folder1/file11
+create folder2/file21
+create folder3/file31
+#
+create folder1/folder11/file111
+create folder2/folder21/file211
+create folder3/folder31/file311
+#####
+write file1                     "it is ~/file1"
+write file2                     "it is ~/file2"
+write file3                     "it is ~/file3"
+#
+write folder1/file11            "it is ~/folder1/file11"
+write folder2/file21            "it is ~/folder2/file21"
+write folder3/file31            "it is ~/folder3/file31"
+#
+write folder1/folder11/file111  "it is ~/folder1/folder11/file111"
+write folder2/folder21/file211  "it is ~/folder2/folder21/file211"
+write folder3/folder31/file311  "it is ~/folder3/folder31/file311"
+#######
+read file1
+read file2
+read file3
+#
+read folder1/file11
+read folder2/file21
+read folder3/file31
+#
+read folder1/folder11/file111
+read folder2/folder21/file211
+read folder3/folder31/file311
+#
+exit
