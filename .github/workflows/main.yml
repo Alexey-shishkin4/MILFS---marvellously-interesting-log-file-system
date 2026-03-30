@@ -1,0 +1,21 @@
+name: GitHub Actions
+on:
+  push:
+    branches: [ main develope rostyan alexey danil rostyan_buffer ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: cmake -B build -S .
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Run Tests
+        working-directory: build
+        run: ctest --output-on-failure

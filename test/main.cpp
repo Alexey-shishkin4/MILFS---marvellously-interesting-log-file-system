@@ -7,7 +7,7 @@ int cli_main();
 
 namespace fs = std::filesystem;
 
-// Pare: input_file <-> expected_output_file
+// Pair: input_file <-> expected_output_file
 struct IoFilePair {
     std::string input;
     std::string expected;
@@ -20,7 +20,7 @@ std::string read_file(const std::string& path) {
     return oss.str();
 }
 
-// collect all pares input/output
+// collect all pairs input/output
 std::vector<IoFilePair> collect_tests(const std::string& tests_dir, const std::string& extension_in, const std::string& extension_out) {
     std::vector<IoFilePair> pairs;
 
@@ -43,6 +43,11 @@ std::vector<IoFilePair> collect_tests(const std::string& tests_dir, const std::s
         pairs.push_back({in_path.string(), out_path.string()});
     }
 
+    std::sort(pairs.begin(), pairs.end(), 
+              [](const IoFilePair& a, const IoFilePair& b) {
+                return a.input < b.input;
+                }
+            );
     return pairs;
 }
 
