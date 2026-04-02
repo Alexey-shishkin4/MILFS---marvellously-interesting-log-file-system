@@ -6,6 +6,7 @@ on:
       - develope
       - alexey
       - danil
+      - daniil
       - "rostyan*"
   pull_request:
     branches: 
@@ -13,6 +14,7 @@ on:
       - develope
       - alexey
       - danil
+      - daniil
       - "rostyan*"
 
 jobs:
