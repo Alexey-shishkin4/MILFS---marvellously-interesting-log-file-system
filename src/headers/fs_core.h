@@ -8,6 +8,9 @@
 #include "directory.h"
 #include "inode.h"
 #include "inode_table.h"
+#include "lfs.h"
+
+class Allocator;
 
 enum class FsError {
     Ok = 0,
@@ -27,17 +30,26 @@ struct FileSystemState {
     InodeTable inode_table;
     std::unordered_map<InodeId, DirectoryEntries> directories;
     std::unordered_map<InodeId, std::string> file_data;
+
+    Superblock superblock{};
+    std::vector<std::byte> disk_image;
+    std::unordered_map<uint64_t, LogAddress> latest_records;
+    Allocator* allocator = nullptr;
 };
 
 void fs_init(FileSystemState& fs);
 
 std::pair<std::string, std::string> fs_split_parent(const std::string& path);
 
-std::optional<InodeId> fs_lookup(const FileSystemState& fs, const std::string& path);
+std::optional<InodeId> fs_lookup(const FileSystemState& fs,
+                                 const std::string& path);
 
 FsError fs_mkdir(FileSystemState& fs, const std::string& path);
 FsError fs_create(FileSystemState& fs, const std::string& path);
-FsError fs_write(FileSystemState& fs, const std::string& path, const std::string& data);
-FsError fs_read(const FileSystemState& fs, const std::string& path, std::string& out);
-FsError fs_listdir(const FileSystemState& fs, const std::string& path, std::vector<std::string>& entries);
-
+FsError
+fs_write(FileSystemState& fs, const std::string& path, const std::string& data);
+FsError
+fs_read(const FileSystemState& fs, const std::string& path, std::string& out);
+FsError fs_listdir(const FileSystemState& fs,
+                   const std::string& path,
+                   std::vector<std::string>& entries);
