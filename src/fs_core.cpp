@@ -5,6 +5,8 @@
 #include <cstring>
 #include <memory>
 #include <sstream>
+#include <filesystem>
+#include <iostream>
 
 namespace {
 
@@ -371,3 +373,65 @@ FsError fs_listdir(const FileSystemState& fs,
     return FsError::Ok;
 }
 
+
+FsError fs_remove(FileSystemState& fs, const std::string& path) {
+    std::filesystem::path p(path);
+    std::string dir_path = p.parent_path().string();
+    std::string basename = p.filename().string();
+    
+    auto parent_ino = fs_lookup(fs, dir_path.empty() ? "/" : dir_path);
+    if (!parent_ino) return FsError::NotFound;
+    
+    auto& entries = fs.directories[*parent_ino];
+    if (entries.find(basename) == entries.end()) return FsError::NotFound;
+    
+    InodeId child_ino = entries[basename];
+    fs.directories[*parent_ino].erase(basename);
+    
+    std::cout << "[T10] rm " << path << " (ino=" << child_ino << ")\n";
+    return FsError::Ok;
+}
+
+FsError fs_rename(FileSystemState& fs, const std::string& from, const std::string& to) {
+    std::filesystem::path p_from(from), p_to(to);
+    std::string dir_from = p_from.parent_path().string();
+    std::string name_from = p_from.filename().string();
+    std::string dir_to = p_to.parent_path().string();
+    std::string name_to = p_to.filename().string();
+    
+    auto parent_from_ino = fs_lookup(fs, dir_from.empty() ? "/" : dir_from);
+    if (!parent_from_ino) return FsError::NotFound;
+    
+    auto& entries_from = fs.directories[*parent_from_ino];
+    if (entries_from.find(name_from) == entries_from.end()) return FsError::NotFound;
+    
+    InodeId child_ino = entries_from[name_from];
+    
+    auto parent_to_ino = fs_lookup(fs, dir_to.empty() ? "/" : dir_to);
+    if (!parent_to_ino) return FsError::NotFound;
+    auto& entries_to = fs.directories[*parent_to_ino];
+    if (entries_to.count(name_to)) return FsError::AlreadyExists;
+    
+    entries_from.erase(name_from);
+    entries_to[name_to] = child_ino;
+    
+    std::cout << "[T10] rename " << from << " -> " << to << "\n";
+    return FsError::Ok;
+}
+
+FsError fs_truncate(FileSystemState& fs, const std::string& path, size_t new_size) {
+    auto ino_opt = fs_lookup(fs, path);
+    if (!ino_opt) return FsError::NotFound;
+    
+    Inode* inode = fs.inode_table.get(*ino_opt);
+    if (!inode || inode->type() != InodeType::File) return FsError::NotDirectory;
+    
+    inode->set_size_bytes(new_size);
+    auto& data = fs.file_data[*ino_opt];
+    if (new_size < data.size()) {
+        data.resize(new_size);
+    }
+    
+    std::cout << "[T10] truncate " << path << " to " << new_size << " bytes\n";
+    return FsError::Ok;
+}

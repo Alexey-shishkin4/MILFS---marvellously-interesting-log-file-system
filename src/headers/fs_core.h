@@ -53,3 +53,6 @@ fs_read(const FileSystemState& fs, const std::string& path, std::string& out);
 FsError fs_listdir(const FileSystemState& fs,
                    const std::string& path,
                    std::vector<std::string>& entries);
+FsError fs_remove(FileSystemState& fs, const std::string& path);
+FsError fs_rename(FileSystemState& fs, const std::string& from, const std::string& to);
+FsError fs_truncate(FileSystemState& fs, const std::string& path, size_t new_size);
