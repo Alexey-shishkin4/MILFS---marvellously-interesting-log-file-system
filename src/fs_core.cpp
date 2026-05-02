@@ -1,11 +1,11 @@
 #include "headers/fs_core.h"
 
 #include "headers/allocator.h"
+#include "headers/metadata_log.h"
 #include "headers/segment_io.h"
 
 #include <algorithm>
 #include <cstdlib>
-#include <cstring>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
@@ -50,6 +50,16 @@ FsError add_child(FileSystemState& fs,
     entries[name] = child_id;
     parent_inode->add_child(child_id);
     parent_inode->touch();
+
+    FsError err = metadata_log::flush_dirent_record(fs, parent, child_id, name);
+    if (err != FsError::Ok) {
+        return err;
+    }
+
+    err = metadata_log::flush_inode_record(fs, *parent_inode);
+    if (err != FsError::Ok) {
+        return err;
+    }
 
     return FsError::Ok;
 }
@@ -202,6 +212,10 @@ FsError fs_mkdir(FileSystemState& fs, const std::string& path) {
     }
 
     fs.directories[new_id] = {};
+    FsError err = metadata_log::flush_inode_record(fs, node);
+    if (err != FsError::Ok) {
+        return err;
+    }
     return add_child(fs, *parent_opt, name, new_id);
 }
 
@@ -233,6 +247,10 @@ FsError fs_create(FileSystemState& fs, const std::string& path) {
     }
 
     fs.file_data[new_id] = "";
+    FsError err = metadata_log::flush_inode_record(fs, node);
+    if (err != FsError::Ok) {
+        return err;
+    }
     return add_child(fs, *parent_opt, name, new_id);
 }
 
@@ -299,6 +317,10 @@ FsError fs_write(FileSystemState& fs,
     }
 
     inode->touch();
+    FsError err = metadata_log::flush_inode_record(fs, *inode);
+    if (err != FsError::Ok) {
+        return err;
+    }
     return FsError::Ok;
 }
 
