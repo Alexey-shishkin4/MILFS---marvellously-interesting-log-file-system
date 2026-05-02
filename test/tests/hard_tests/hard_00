@@ -1,0 +1,185 @@
+MILFS CLI gateway. Enter 'help' for commands, 'exit' to quit.
+> Unknown command: ==== || =================== || ====
+> Unknown command: ==== || == COPY ls_04.in == || ====
+> Unknown command: ==== \/ =================== \/ ====
+> ok
+> ok
+> ok
+> Unknown command: ###
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> ok
+> ok
+> Unknown command: #####
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> ok
+> ok
+> Unknown command: #######
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> ok
+> ok
+> Unknown command: #########
+> file1
+file2
+file3
+folder1
+folder2
+folder3
+> Unknown command: ###
+> file11
+folder11
+folder12
+> Unknown command: #
+> file111
+folder111
+> Unknown command: #
+> file1111
+> Unknown command: #
+> file121
+file122
+file123
+> Unknown command: #####
+> file21
+folder21
+folder22
+> Unknown command: #
+> file211
+folder211
+> Unknown command: #
+> file2111
+> Unknown command: #
+> file221
+file222
+file223
+> Unknown command: #######
+> file31
+folder31
+folder32
+> Unknown command: #
+> file311
+folder311
+> Unknown command: #
+> file3111
+> Unknown command: #
+> file321
+file322
+file323
+> Unknown command: #
+> Unknown command: ========== CURRENT STATUS ==========
+> Unknown command: #    .                             #
+> Unknown command: #    ├── file1                     #
+> Unknown command: #    ├── file2                     #
+> Unknown command: #    ├── file3                     #
+> Unknown command: #    ├── folder1                   #
+> Unknown command: #    |   ├── file11                #
+> Unknown command: #    |   ├── folder11              #
+> Unknown command: #    |   │   ├── file111           #
+> Unknown command: #    |   │   └── folder111         #
+> Unknown command: #    |   │       └── file1111      #
+> Unknown command: #    |   └── folder12              #
+> Unknown command: #    |       ├── file121           #
+> Unknown command: #    |       ├── file122           #
+> Unknown command: #    |       └── file123           #
+> Unknown command: #    ├── folder2                   #
+> Unknown command: #    |   ├── file21                #
+> Unknown command: #    |   ├── folder21              #
+> Unknown command: #    |   │   ├── file211           #
+> Unknown command: #    |   │   └── folder211         #
+> Unknown command: #    |   │       └── file2111      #
+> Unknown command: #    |   └── folder22              #
+> Unknown command: #    |       ├── file221           #
+> Unknown command: #    |       ├── file222           #
+> Unknown command: #    |       └── file223           #
+> Unknown command: #    └── folder3                   #
+> Unknown command: #        ├── file31                #
+> Unknown command: #        ├── folder31              #
+> Unknown command: #        │   ├── file311           #
+> Unknown command: #        │   └── folder311         #
+> Unknown command: #        │       └── file3111      #
+> Unknown command: #        └── folder12              #
+> Unknown command: #            ├── file321           #
+> Unknown command: #            ├── file322           #
+> Unknown command: #            └── file323           #
+> Unknown command: ====================================
+> Unknown command: ==== /\ =================== /\ ====
+> Unknown command: ==== || == COPY ls_04.in == || ====
+> Unknown command: ==== || =================== || ====
+> Unknown command: #
+> ok
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> ok
+> Unknown command: ###
+> ok
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> ok
+> Unknown command: #
+> ok
+> ok
+> ok
+> Unknown command: #####
+> update_05 data in ~/file1
+> update_05 data in ~/file2
+> update_05 data in ~/file3
+> Unknown command: #######
+> update_03 data in ~/folder1/file1
+> update_03 data in ~/folder2/file2
+> update_03 data in ~/folder3/file3
+> Unknown command: #
+> Exit from program!

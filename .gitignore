@@ -1,0 +1,14 @@
+**/build/
+*/.vscode/
+output
+build
+
+*.out
+*.exe
+*.sh
+*.o
+*.txt
+
+!**/CMakeLists.txt
+.vscode/tasks.json
+.vscode

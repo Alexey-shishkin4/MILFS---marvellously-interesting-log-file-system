@@ -1,0 +1,22 @@
+mkdir folder1
+mkdir folder2
+mkdir folder3
+#
+mkdir folder1/folder11
+mkdir folder2/folder21
+mkdir folder3/folder31
+#
+#
+create file1
+create file2
+create file3
+#
+create folder1/file11
+create folder2/file21
+create folder3/file31
+#
+create folder1/folder11/file111
+create folder2/folder21/file211
+create folder3/folder31/file311
+#
+exit

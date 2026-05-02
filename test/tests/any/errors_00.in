@@ -1,0 +1,10 @@
+create  file1
+mkdir   folder1
+###
+cat     file2
+ls      folder2
+#####
+ls      file1
+cat     folder1
+#######
+cat     
