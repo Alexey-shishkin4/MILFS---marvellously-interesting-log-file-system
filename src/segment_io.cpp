@@ -111,6 +111,7 @@ FsError SegmentIO::open_or_create(const std::string& image_path,
 
 void SegmentIO::close() noexcept {
     if (fd_ >= 0) {
+        log_buffer_.flush_to_disk(fd_);
         ::close(fd_);
         fd_ = -1;
     }
@@ -261,10 +262,16 @@ FsError SegmentIO::read_record(const LogAddress& addr,
     return FsError::Ok;
 }
 
-FsError SegmentIO::flush() const {
+FsError SegmentIO::flush() {
     if (!is_open()) {
         return FsError::IoError;
     }
+    
+    FsError err = log_buffer_.flush_to_disk(fd_);
+    if (err != FsError::Ok) {
+        return err;
+    }
+
     if (::fsync(fd_) != 0) {
         return FsError::IoError;
     }
@@ -280,51 +287,15 @@ uint64_t SegmentIO::block_offset_bytes(uint32_t segment_id, uint32_t block_index
            static_cast<uint64_t>(block_index) * sb_.block_size_bytes;
 }
 
-FsError SegmentIO::write_all_at(const void* data, std::size_t size, uint64_t offset) const {
-    const auto* p = static_cast<const std::byte*>(data);
-    std::size_t written = 0;
-
-    while (written < size) {
-        const ssize_t rc = ::pwrite(fd_, p + written, size - written,
-                                    static_cast<off_t>(offset + written));
-        if (rc < 0) {
-            if (errno == EINTR) {
-                continue;
-            }
-            return FsError::IoError;
-        }
-        if (rc == 0) {
-            return FsError::IoError;
-        }
-        written += static_cast<std::size_t>(rc);
-    }
-
-    return FsError::Ok;
+FsError SegmentIO::write_all_at(const void* data, std::size_t size, uint64_t offset) {
+    return log_buffer_.append(offset, data, size, fd_);
 }
 
 FsError SegmentIO::read_all_at(void* data, std::size_t size, uint64_t offset) const {
-    auto* p = static_cast<std::byte*>(data);
-    std::size_t read = 0;
-
-    while (read < size) {
-        const ssize_t rc = ::pread(fd_, p + read, size - read,
-                                   static_cast<off_t>(offset + read));
-        if (rc < 0) {
-            if (errno == EINTR) {
-                continue;
-            }
-            return FsError::IoError;
-        }
-        if (rc == 0) {
-            return FsError::IoError;
-        }
-        read += static_cast<std::size_t>(rc);
-    }
-
-    return FsError::Ok;
+    return log_buffer_.read_with_cache(offset, data, size, fd_);
 }
 
-FsError SegmentIO::write_superblock() const {
+FsError SegmentIO::write_superblock() {
     std::vector<std::byte> block(sb_.block_size_bytes);
     std::memcpy(block.data(), &sb_, sizeof(sb_));
     return write_all_at(block.data(), block.size(), 0);
@@ -334,7 +305,7 @@ FsError SegmentIO::read_superblock(Superblock& out) const {
     return read_all_at(&out, sizeof(out), 0);
 }
 
-FsError SegmentIO::write_segment_header(const SegmentHeader& header) const {
+FsError SegmentIO::write_segment_header(const SegmentHeader& header) {
     if (header.segment_id >= sb_.segment_count) {
         return FsError::Internal;
     }

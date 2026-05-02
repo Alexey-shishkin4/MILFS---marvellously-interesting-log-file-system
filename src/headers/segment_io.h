@@ -7,6 +7,8 @@
 
 #include "allocator.h"
 #include "lfs.h"
+#include "log_buffer.h"
+
 
 class SegmentIO {
 public:
@@ -43,20 +45,21 @@ public:
                         RecordHeader& out_header,
                         std::vector<std::byte>& out_payload) const;
 
-    FsError flush() const;
+    FsError flush();
 
 private:
     uint64_t segment_offset_bytes(uint32_t segment_id) const;
     uint64_t block_offset_bytes(uint32_t segment_id, uint32_t block_index) const;
 
-    FsError write_all_at(const void* data, std::size_t size, uint64_t offset) const;
+    FsError write_all_at(const void* data, std::size_t size, uint64_t offset);
     FsError read_all_at(void* data, std::size_t size, uint64_t offset) const;
-    FsError write_superblock() const;
+    FsError write_superblock();
     FsError read_superblock(Superblock& out) const;
-    FsError write_segment_header(const SegmentHeader& header) const;
+    FsError write_segment_header(const SegmentHeader& header);
 
 private:
     int fd_ = -1;
     Superblock sb_{};
     std::string image_path_;
+    LogBuffer log_buffer_{};
 };
