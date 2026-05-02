@@ -10,6 +10,8 @@
 #include <memory>
 #include <sstream>
 #include <stdexcept>
+// #include <iostream>
+
 
 FileSystemState::FileSystemState() = default;
 FileSystemState::~FileSystemState() = default;
@@ -281,6 +283,7 @@ FsError fs_write(FileSystemState& fs,
 
     const uint32_t block_sz = fs.superblock.block_size_bytes;
     const std::size_t total_blocks = block_count_for_size(data.size(), block_sz);
+    // std::cout << block_sz << ' ' << data.size() << ' ' << total_blocks << std::endl;
 
     if (total_blocks > kNumDirectBlocks) {
         return FsError::NoSpace;
