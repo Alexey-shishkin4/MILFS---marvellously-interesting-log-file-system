@@ -13,4 +13,6 @@ FsError flush_dirent_record(FileSystemState& fs,
                             InodeId child_inode,
                             const std::string& name);
 
+FsError write_checkpoint_record(FileSystemState& fs);
+
 } // namespace metadata_log

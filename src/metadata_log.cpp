@@ -1,7 +1,7 @@
 #include "headers/metadata_log.h"
+
 #include "headers/metadata_format.h"
 
-#include <array>
 #include <cstdint>
 #include <cstring>
 #include <limits>
@@ -12,6 +12,7 @@ namespace {
 constexpr uint64_t kMetaKeyPrefix = 0x8000000000000000ULL;
 constexpr uint64_t kMetaKeyInode = 0x1000000000000000ULL;
 constexpr uint64_t kMetaKeyDirent = 0x2000000000000000ULL;
+constexpr uint64_t kCheckpointKey = 0x7000000000000001ULL;
 
 uint64_t make_inode_key(InodeId inode_id) {
     return kMetaKeyPrefix | kMetaKeyInode | static_cast<uint64_t>(inode_id);
@@ -79,6 +80,23 @@ FsError flush_dirent_record(FileSystemState& fs,
                             0,
                             payload.data(),
                             payload.size(),
+                            addr);
+}
+
+FsError write_checkpoint_record(FileSystemState& fs) {
+    CheckpointPayload payload{};
+    payload.version = kCheckpointVersion;
+    payload.root_inode = fs.root_inode;
+    payload.next_inode_id = fs.next_inode_id;
+
+    LogAddress addr{};
+    return fs_append_record(fs,
+                            RecordType::Checkpoint,
+                            kCheckpointKey,
+                            fs.root_inode,
+                            0,
+                            reinterpret_cast<const std::byte*>(&payload),
+                            sizeof(payload),
                             addr);
 }
 
