@@ -21,6 +21,12 @@ struct DirentRecordHeader {
     uint32_t child_inode;
     uint32_t name_size;
 };
+
+struct CheckpointPayload {
+    uint32_t version;
+    uint32_t root_inode;
+    uint32_t next_inode_id;
+};
 #pragma pack(pop)
 
-
+inline constexpr uint32_t kCheckpointVersion = 1;

@@ -2,6 +2,7 @@
 
 #include "headers/allocator.h"
 #include "headers/metadata_log.h"
+#include "headers/recovery.h"
 #include "headers/segment_io.h"
 
 #include <algorithm>
@@ -138,6 +139,13 @@ void fs_init_with_image(FileSystemState& fs,
         fs.segment_io.reset();
         fs.allocator.reset();
         throw std::runtime_error("failed to open image file");
+    }
+
+    if (!truncate_existing) {
+        const FsError recover_err = recovery::replay_log(fs);
+        if (recover_err != FsError::Ok) {
+            throw std::runtime_error("failed to replay log");
+        }
     }
 }
 
@@ -457,5 +465,13 @@ FsError fs_flush(FileSystemState& fs) {
     if (fs.segment_io == nullptr) {
         return FsError::Internal;
     }
-    return fs.segment_io->flush();
+    FsError err = metadata_log::write_checkpoint_record(fs);
+    if (err != FsError::Ok) {
+        return err;
+    }
+    err = fs.segment_io->flush();
+    if (err != FsError::Ok) {
+        return err;
+    }
+    return FsError::Ok;
 }
