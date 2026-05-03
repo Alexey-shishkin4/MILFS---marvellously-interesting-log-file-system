@@ -11,7 +11,7 @@ enum class SegmentState : uint32_t {
   Free = 0,
   Open = 1,
   Sealed = 2,
-  Dirty = 3,
+  Outdated = 3,
   Bad = 4
 };
 
@@ -20,20 +20,24 @@ enum class RecordType : uint16_t {
   Data = 2,
   Dirent = 3,
   Checkpoint = 4,
-  Tombstone = 5,
-  Metadata = 6
+  Tombstone = 5 // we are close to gc so its mark for outdated (rm'd/renamed) objects
 };
 
 enum RecordFlags : uint16_t {
   kNone = 0,
   kDeleted = 1u << 0,
-  kHasPadding = 1u << 1,
-  kCompressed = 1u << 2
+  kHasPadding = 1u << 1
 };
 
 #pragma pack(push, 1)
 
 struct Superblock {
+  static constexpr uint32_t kDefaultVersion = 1;
+  static constexpr uint32_t kDefaultBlockSizeBytes = 4096;
+  static constexpr uint32_t kDefaultBlocksPerSegment = 256;
+  static constexpr uint32_t kDefaultSegmentCount = 64;
+  static constexpr uint32_t kDefaultReservedBlocksPerSegment = 1;
+
   uint32_t version;
   uint64_t disk_size_bytes;
   uint32_t block_size_bytes;
@@ -41,8 +45,17 @@ struct Superblock {
   uint32_t segment_count;
   uint32_t reserved_blocks_per_segment;
   uint64_t checkpoint_block;
-  uint64_t features_compat;
-  uint64_t features_incompat;
+
+  Superblock()
+      : version(kDefaultVersion),
+        disk_size_bytes(static_cast<uint64_t>(kDefaultBlockSizeBytes) *
+                        kDefaultBlocksPerSegment *
+                        kDefaultSegmentCount),
+        block_size_bytes(kDefaultBlockSizeBytes),
+        blocks_per_segment(kDefaultBlocksPerSegment),
+        segment_count(kDefaultSegmentCount),
+        reserved_blocks_per_segment(kDefaultReservedBlocksPerSegment),
+        checkpoint_block(0) {}
 };
 
 struct SegmentHeader {

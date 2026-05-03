@@ -72,6 +72,9 @@ void printStatus(FsError err) {
         case FsError::NoSpace:
             std::cout << "error: no space\n";
             break;
+        case FsError::IoError:
+            std::cout << "error: disk I/O error\n";
+            break;
         case FsError::Internal:
         default:
             std::cout << "error: internal error\n";
