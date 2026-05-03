@@ -210,6 +210,34 @@ int cli_main() {
             continue;
         }
 
+        if (command == "rm") {
+            if (tokens.size() != 2) {
+                std::cout << "usage: rm <path>\n";
+                continue;
+            }
+            printStatus(fs_remove(g_fs, tokens[1]));
+            continue;
+        }
+
+        if (command == "rename") {
+            if (tokens.size() != 3) {
+                std::cout << "usage: rename <old_path> <new_path>\n";
+                continue;
+            }
+            printStatus(fs_rename(g_fs, tokens[1], tokens[2]));
+            continue;
+        }
+
+        if (command == "truncate") {
+            if (tokens.size() != 3) {
+                std::cout << "usage: truncate <path> <size>\n";
+                continue;
+            }
+            size_t new_size = std::stoul(tokens[2]);
+            printStatus(fs_truncate(g_fs, tokens[1], new_size));
+            continue;
+        }
+
         std::cout << "Unknown command: " << command << '\n';
     }
 
