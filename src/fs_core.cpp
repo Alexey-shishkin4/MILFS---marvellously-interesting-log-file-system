@@ -11,12 +11,12 @@
 #include <sstream>
 #include <filesystem>
 #include <iostream>
-=======
+
+
 #include <stdexcept>
 
 FileSystemState::FileSystemState() = default;
 FileSystemState::~FileSystemState() = default;
->>>>>>> develope
 
 namespace {
 
@@ -418,7 +418,6 @@ FsError fs_listdir(const FileSystemState& fs,
     return FsError::Ok;
 }
 
-<<<<<<< HEAD
 
 FsError fs_remove(FileSystemState& fs, const std::string& path) {
     std::filesystem::path p(path);
@@ -479,7 +478,8 @@ FsError fs_truncate(FileSystemState& fs, const std::string& path, size_t new_siz
     }
     
     std::cout << "[T10] truncate " << path << " to " << new_size << " bytes\n";
-=======
+
+
 FsError fs_append_record(FileSystemState& fs,
                          RecordType type,
                          uint64_t key,
