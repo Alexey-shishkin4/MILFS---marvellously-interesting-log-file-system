@@ -478,6 +478,7 @@ FsError fs_truncate(FileSystemState& fs, const std::string& path, size_t new_siz
     }
     
     std::cout << "[T10] truncate " << path << " to " << new_size << " bytes\n";
+}
 
 
 FsError fs_append_record(FileSystemState& fs,
@@ -540,3 +541,5 @@ FsError fs_flush(FileSystemState& fs) {
     if (err != FsError::Ok) {
         return err;
     }
+    return FsError:Ok;
+}
