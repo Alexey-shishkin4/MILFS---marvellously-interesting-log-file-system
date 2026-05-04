@@ -5,6 +5,8 @@
 #include <algorithm>
 
 int cli_main();
+static const fs::path kMilfsImage = "milfs.img";
+
 
 namespace fs = std::filesystem;
 
@@ -52,8 +54,18 @@ std::vector<IoFilePair> collect_tests(const std::string& tests_dir, const std::s
     return pairs;
 }
 
+class CLITest : public ::testing::TestWithParam<IoFilePair> {
+protected:
+    void SetUp() override {
+        std::error_code ec;
+        fs::remove(kMilfsImage, ec);
+    }
 
-class CLITest : public ::testing::TestWithParam<IoFilePair> {};
+    void TearDown() override {
+        std::error_code ec;
+        fs::remove(kMilfsImage, ec);
+    }
+};
 
 TEST_P(CLITest, RunCLI) {
     IoFilePair param = GetParam();
