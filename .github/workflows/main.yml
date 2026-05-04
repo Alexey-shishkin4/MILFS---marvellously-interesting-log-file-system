@@ -29,7 +29,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y fuse3 libfuse3-dev cmake g++ pkg-config
 
-
       - name: Configure CMake
         run: cmake -B build -S .
 
