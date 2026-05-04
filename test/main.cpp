@@ -5,10 +5,11 @@
 #include <algorithm>
 
 int cli_main();
-static const fs::path kMilfsImage = "milfs.img";
+
 
 
 namespace fs = std::filesystem;
+static const fs::path kMilfsImage = "milfs.img";
 
 // Pair: input_file <-> expected_output_file
 struct IoFilePair {
