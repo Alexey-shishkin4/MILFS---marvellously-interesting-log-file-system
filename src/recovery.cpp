@@ -1,4 +1,5 @@
 #include "headers/recovery.h"
+#include "headers/allocator.h"
 
 #include "headers/metadata_format.h"
 
@@ -143,7 +144,14 @@ FsError replay_log(FileSystemState& fs) {
             }
 
             fs.latest_records[hdr.key] = addr;
-            block += record_blocks(fs.superblock.block_size_bytes, hdr.payload_size_bytes);
+
+            const uint32_t blocks_used =
+                record_blocks(fs.superblock.block_size_bytes, hdr.payload_size_bytes);
+            if (fs.allocator != nullptr) {
+                fs.allocator->note_existing_record(addr, blocks_used, hdr.seq_no);
+            }
+
+            block += blocks_used;
         }
     }
 

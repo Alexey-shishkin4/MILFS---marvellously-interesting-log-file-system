@@ -120,7 +120,8 @@ void fs_init(FileSystemState& fs) {
     const std::string image_path = image_env != nullptr ? image_env : "milfs.img";
 
     // MILFS_RESET=0 to save image.
-    const bool truncate_existing = !is_env_false("MILFS_RESET");
+    const char* reset_env = std::getenv("MILFS_RESET");
+    const bool truncate_existing = (reset_env != nullptr && std::string(reset_env) == "0");
     fs_init_with_image(fs, image_path, truncate_existing);
 }
 
