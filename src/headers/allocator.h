@@ -32,6 +32,10 @@ public:
 
   const std::vector<SegmentHeader> &segments() const noexcept;
 
+  void note_existing_record(const LogAddress& addr,
+                            uint32_t block_count,
+                            uint64_t record_seq_no);
+
 private:
   FsError open_next_free_segment();
   void seal_active_segment();

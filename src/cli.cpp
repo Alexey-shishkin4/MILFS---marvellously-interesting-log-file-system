@@ -105,6 +105,7 @@ int cli_main() {
 
         std::string input;
         if (!std::getline(std::cin, input)) {
+            fs_flush(g_fs);
             std::cout << "\nExit from program!\n";
             break;
         }
@@ -122,6 +123,7 @@ int cli_main() {
         const std::string& command = tokens[0];
 
         if (command == "exit") {
+            fs_flush(g_fs);
             std::cout << "Exit from program!\n";
             break;
         }

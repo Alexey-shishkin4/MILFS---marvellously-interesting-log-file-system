@@ -69,7 +69,8 @@ FsError SegmentIO::open_or_create(const std::string& image_path,
     }
 
     const auto desired_size = static_cast<off_t>(sb_.disk_size_bytes);
-    const bool needs_format = truncate_existing || st.st_size != desired_size;
+    const bool file_empty = (st.st_size == 0);
+    const bool needs_format = truncate_existing || file_empty;
 
     if (needs_format) {
         if (::ftruncate(fd_, desired_size) != 0) {
@@ -89,6 +90,11 @@ FsError SegmentIO::open_or_create(const std::string& image_path,
             return err;
         }
     } else {
+        if (st.st_size < static_cast<off_t>(sizeof(Superblock))) {
+            close();
+            return FsError::Internal;
+        }
+
         Superblock on_disk{};
         FsError err = read_superblock(on_disk);
         if (err != FsError::Ok) {
@@ -104,10 +110,18 @@ FsError SegmentIO::open_or_create(const std::string& image_path,
             close();
             return FsError::Internal;
         }
+
+        if (st.st_size < desired_size) {
+            if (::ftruncate(fd_, desired_size) != 0) {
+                close();
+                return FsError::IoError;
+            }
+        }
     }
 
     return FsError::Ok;
 }
+
 
 void SegmentIO::close() noexcept {
     if (fd_ >= 0) {

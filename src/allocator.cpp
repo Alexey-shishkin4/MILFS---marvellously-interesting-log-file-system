@@ -1,5 +1,5 @@
 #include "headers/allocator.h"
-
+#include <algorithm>
 #include <ctime>
 
 void Allocator::init(const Superblock &sb) {
@@ -31,6 +31,38 @@ const Superblock &Allocator::superblock() const noexcept { return sb_; }
 uint64_t Allocator::next_record_seq_no() noexcept {
   return global_seq_no_++;
 }
+
+
+void Allocator::note_existing_record(const LogAddress& addr,
+                                     uint32_t block_count,
+                                     uint64_t record_seq_no) {
+  if (addr.segment_id >= segments_.size() || block_count == 0) {
+    return;
+  }
+
+  auto &seg = segments_[addr.segment_id];
+
+  if (static_cast<SegmentState>(seg.state) == SegmentState::Free) {
+    seg.state = static_cast<uint32_t>(SegmentState::Open);
+    seg.sequence_no = std::max<uint64_t>(seg.sequence_no, segment_seq_no_++);
+    free_segments_.erase(
+        std::remove(free_segments_.begin(), free_segments_.end(), addr.segment_id),
+        free_segments_.end());
+  }
+
+  const uint32_t end_block = addr.block_index + block_count;
+  if (end_block > seg.write_block_offset) {
+    seg.write_block_offset = end_block;
+  }
+
+  seg.used_blocks = seg.write_block_offset - seg.data_start_block;
+  seg.free_blocks = sb_.blocks_per_segment - seg.write_block_offset;
+  seg.record_count += 1;
+  global_seq_no_ = std::max(global_seq_no_, record_seq_no + 1);
+
+  active_segment_id_ = addr.segment_id;
+}
+
 
 FsError Allocator::ensure_active_segment() {
   if (active_segment_id_.has_value()) {
