@@ -9,7 +9,6 @@ int cli_main();
 namespace fs = std::filesystem;
 static const fs::path kMilfsImage = "milfs.img";
 
-
 // Pair: input_file <-> expected_output_file
 struct IoFilePair {
     std::string input;
