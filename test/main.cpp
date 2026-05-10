@@ -6,8 +6,6 @@
 
 int cli_main();
 
-
-
 namespace fs = std::filesystem;
 static const fs::path kMilfsImage = "milfs.img";
 

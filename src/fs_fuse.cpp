@@ -98,27 +98,41 @@ int milfs_read(const char* path, char* buf, size_t size, off_t offset, struct fu
     return static_cast<int>(to_copy);
 }
 
-int milfs_write(const char* path, const char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
+int milfs_write(const char* path,
+                const char* buf,
+                size_t size,
+                off_t offset,
+                struct fuse_file_info* fi)
+{
     (void)fi;
 
-    auto ino_opt = fs_lookup(g_milfs_state->fs, path);
-    if (!ino_opt) return -ENOENT;
+    if (offset < 0) {
+        return -EINVAL;
+    }
 
-    Inode* inode = g_milfs_state->fs.inode_table.get(*ino_opt);
-    if (!inode) return -ENOENT;
-    if (inode->type() == InodeType::Directory) return -EISDIR;
-    if (offset < 0) return -EINVAL;
+    std::string data;
+    FsError err = fs_read(g_milfs_state->fs, path, data);
+    if (err != FsError::Ok) {
+        return to_errno(err);
+    }
 
-    std::string& data = g_milfs_state->fs.file_data[*ino_opt];
-    size_t end_pos = static_cast<size_t>(offset) + size;
+    size_t off = static_cast<size_t>(offset);
+    size_t end_pos = off + size;
+
     if (data.size() < end_pos) {
         data.resize(end_pos, '\0');
     }
 
-    std::memcpy(data.data() + offset, buf, size);
-    inode->set_size_bytes(data.size());
+    std::memcpy(data.data() + off, buf, size);
+
+    err = fs_write(g_milfs_state->fs, path, data);
+    if (err != FsError::Ok) {
+        return to_errno(err);
+    }
+
     return static_cast<int>(size);
 }
+
 
 int milfs_mkdir(const char* path, mode_t mode) {
     (void)mode;
@@ -144,4 +158,52 @@ int milfs_truncate(const char* path, off_t size, struct fuse_file_info* fi) {
     (void)fi;
     if (size < 0) return -EINVAL;
     return to_errno(fs_truncate(g_milfs_state->fs, path, static_cast<size_t>(size)));
+}
+
+int milfs_flush(const char* path, struct fuse_file_info* fi)
+{
+    (void)path;
+    (void)fi;
+    return to_errno(fs_flush(g_milfs_state->fs));
+}
+
+int milfs_fsync(const char* path, int datasync, struct fuse_file_info* fi)
+{
+    (void)path;
+    (void)datasync;
+    (void)fi;
+    return to_errno(fs_flush(g_milfs_state->fs));
+}
+
+void milfs_destroy(void* private_data)
+{
+    (void)private_data;
+
+    if (g_milfs_state != nullptr) {
+        fs_flush(g_milfs_state->fs);
+        delete g_milfs_state;
+        g_milfs_state = nullptr;
+    }
+}
+
+int milfs_utimens(const char* path,
+                  const struct timespec tv[2],
+                  struct fuse_file_info* fi)
+{
+    (void)tv;
+    (void)fi;
+
+    auto ino_opt = fs_lookup(g_milfs_state->fs, path);
+    if (!ino_opt) {
+        return -ENOENT;
+    }
+
+    Inode* inode = g_milfs_state->fs.inode_table.get(*ino_opt);
+    if (!inode) {
+        return -ENOENT;
+    }
+
+    inode->touch();
+
+    return 0;
 }

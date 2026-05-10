@@ -27,6 +27,10 @@ int main(int argc, char* argv[]) {
     milfs_ops.unlink = milfs_unlink;
     milfs_ops.rename = milfs_rename;
     milfs_ops.truncate = milfs_truncate;
+    milfs_ops.flush = milfs_flush;
+    milfs_ops.fsync = milfs_fsync;
+    milfs_ops.destroy = milfs_destroy;
+    milfs_ops.utimens = milfs_utimens;
 
     return fuse_main(argc, argv, &milfs_ops, nullptr);
 }

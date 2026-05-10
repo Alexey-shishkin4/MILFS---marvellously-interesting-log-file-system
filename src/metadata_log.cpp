@@ -83,6 +83,30 @@ FsError flush_dirent_record(FileSystemState& fs,
                             addr);
 }
 
+
+FsError flush_dirent_tombstone_record(FileSystemState& fs,
+                                      InodeId parent_inode,
+                                      InodeId child_inode) {
+    DirentRecordHeader hdr{};
+    hdr.parent_inode = parent_inode;
+    hdr.child_inode = child_inode;
+    hdr.name_size = 0;
+
+    LogAddress addr{};
+
+    return fs_append_record(
+        fs,
+        RecordType::Tombstone,
+        make_dirent_key(parent_inode, child_inode),
+        parent_inode,
+        0,
+        reinterpret_cast<const std::byte*>(&hdr),
+        sizeof(hdr),
+        addr
+    );
+}
+
+
 FsError write_checkpoint_record(FileSystemState& fs) {
     CheckpointPayload payload{};
     payload.version = kCheckpointVersion;

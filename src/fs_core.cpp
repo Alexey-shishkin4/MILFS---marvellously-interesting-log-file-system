@@ -420,66 +420,152 @@ FsError fs_listdir(const FileSystemState& fs,
 }
 
 
-FsError fs_remove(FileSystemState& fs, const std::string& path) {
+FsError fs_remove(FileSystemState& fs, const std::string& path)
+{
     std::filesystem::path p(path);
+
     std::string dir_path = p.parent_path().string();
     std::string basename = p.filename().string();
-    
+
     auto parent_ino = fs_lookup(fs, dir_path.empty() ? "/" : dir_path);
-    if (!parent_ino) return FsError::NotFound;
-    
-    auto& entries = fs.directories[*parent_ino];
-    if (entries.find(basename) == entries.end()) return FsError::NotFound;
-    
-    InodeId child_ino = entries[basename];
-    fs.directories[*parent_ino].erase(basename);
-    
+    if (!parent_ino) {
+        return FsError::NotFound;
+    }
+
+    auto dir_it = fs.directories.find(*parent_ino);
+    if (dir_it == fs.directories.end()) {
+        return FsError::NotDirectory;
+    }
+
+    auto entry_it = dir_it->second.find(basename);
+    if (entry_it == dir_it->second.end()) {
+        return FsError::NotFound;
+    }
+
+    InodeId child_ino = entry_it->second;
+
+    FsError err = metadata_log::flush_dirent_tombstone_record(
+        fs,
+        *parent_ino,
+        child_ino
+    );
+
+    if (err != FsError::Ok) {
+        return err;
+    }
+
+    dir_it->second.erase(entry_it);
+
+    Inode* parent_inode = fs.inode_table.get(*parent_ino);
+    if (parent_inode) {
+        parent_inode->touch();
+        err = metadata_log::flush_inode_record(fs, *parent_inode);
+        if (err != FsError::Ok) {
+            return err;
+        }
+    }
+
     std::cout << "[T10] rm " << path << " (ino=" << child_ino << ")\n";
+
     return FsError::Ok;
 }
 
-FsError fs_rename(FileSystemState& fs, const std::string& from, const std::string& to) {
-    std::filesystem::path p_from(from), p_to(to);
+
+FsError fs_rename(FileSystemState& fs,
+                  const std::string& from,
+                  const std::string& to)
+{
+    if (from == to) {
+        return FsError::Ok;
+    }
+
+    std::filesystem::path p_from(from);
+    std::filesystem::path p_to(to);
+
     std::string dir_from = p_from.parent_path().string();
     std::string name_from = p_from.filename().string();
+
     std::string dir_to = p_to.parent_path().string();
     std::string name_to = p_to.filename().string();
-    
+
     auto parent_from_ino = fs_lookup(fs, dir_from.empty() ? "/" : dir_from);
-    if (!parent_from_ino) return FsError::NotFound;
-    
-    auto& entries_from = fs.directories[*parent_from_ino];
-    if (entries_from.find(name_from) == entries_from.end()) return FsError::NotFound;
-    
-    InodeId child_ino = entries_from[name_from];
-    
+    if (!parent_from_ino) {
+        return FsError::NotFound;
+    }
+
     auto parent_to_ino = fs_lookup(fs, dir_to.empty() ? "/" : dir_to);
-    if (!parent_to_ino) return FsError::NotFound;
+    if (!parent_to_ino) {
+        return FsError::NotFound;
+    }
+
+    auto& entries_from = fs.directories[*parent_from_ino];
     auto& entries_to = fs.directories[*parent_to_ino];
-    if (entries_to.count(name_to)) return FsError::AlreadyExists;
-    
-    entries_from.erase(name_from);
+
+    auto old_it = entries_from.find(name_from);
+    if (old_it == entries_from.end()) {
+        return FsError::NotFound;
+    }
+
+    if (entries_to.count(name_to)) {
+        return FsError::AlreadyExists;
+    }
+
+    InodeId child_ino = old_it->second;
+
+    FsError err = metadata_log::flush_dirent_tombstone_record(
+        fs,
+        *parent_from_ino,
+        child_ino
+    );
+
+    if (err != FsError::Ok) {
+        return err;
+    }
+
+    err = metadata_log::flush_dirent_record(
+        fs,
+        *parent_to_ino,
+        child_ino,
+        name_to
+    );
+
+    if (err != FsError::Ok) {
+        return err;
+    }
+
+    entries_from.erase(old_it);
     entries_to[name_to] = child_ino;
-    
+
+    Inode* parent_from = fs.inode_table.get(*parent_from_ino);
+    if (parent_from) {
+        parent_from->touch();
+        metadata_log::flush_inode_record(fs, *parent_from);
+    }
+
+    Inode* parent_to = fs.inode_table.get(*parent_to_ino);
+    if (parent_to && *parent_to_ino != *parent_from_ino) {
+        parent_to->touch();
+        metadata_log::flush_inode_record(fs, *parent_to);
+    }
+
     std::cout << "[T10] rename " << from << " -> " << to << "\n";
+
     return FsError::Ok;
 }
 
-FsError fs_truncate(FileSystemState& fs, const std::string& path, size_t new_size) {
-    auto ino_opt = fs_lookup(fs, path);
-    if (!ino_opt) return FsError::NotFound;
-    
-    Inode* inode = fs.inode_table.get(*ino_opt);
-    if (!inode || inode->type() != InodeType::File) return FsError::NotDirectory;
-    
-    inode->set_size_bytes(new_size);
-    auto& data = fs.file_data[*ino_opt];
-    if (new_size < data.size()) {
-        data.resize(new_size);
+
+FsError fs_truncate(FileSystemState& fs, const std::string& path, size_t new_size)
+{
+    std::string data;
+
+    FsError err = fs_read(fs, path, data);
+    if (err != FsError::Ok) {
+        return err;
     }
-    
-    std::cout << "[T10] truncate " << path << " to " << new_size << " bytes\n";
-    return FsError::Ok;
+
+    data.resize(new_size, '\0');
+
+    return fs_write(fs, path, data);
 }
 
 
