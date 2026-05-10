@@ -21,3 +21,9 @@ int milfs_create(const char* path, mode_t mode, struct fuse_file_info* fi);
 int milfs_unlink(const char* path);
 int milfs_rename(const char* from, const char* to, unsigned int flags);
 int milfs_truncate(const char* path, off_t size, struct fuse_file_info* fi);
+void milfs_destroy(void* private_data);
+int milfs_flush(const char* path, struct fuse_file_info* fi);
+int milfs_fsync(const char* path, int datasync, struct fuse_file_info* fi);
+int milfs_utimens(const char* path,
+                  const struct timespec tv[2],
+                  struct fuse_file_info* fi);

@@ -100,6 +100,33 @@ FsError apply_checkpoint_record(FileSystemState& fs,
     return FsError::Ok;
 }
 
+
+FsError apply_tombstone_record(FileSystemState& fs, const std::vector<std::byte>& payload)
+{
+    if (payload.size() < sizeof(DirentRecordHeader)) {
+        return FsError::Internal;
+    }
+
+    DirentRecordHeader hdr{};
+    std::memcpy(&hdr, payload.data(), sizeof(hdr));
+
+    auto dir_it = fs.directories.find(hdr.parent_inode);
+    if (dir_it == fs.directories.end()) {
+        return FsError::Ok;
+    }
+
+    auto& entries = dir_it->second;
+
+    for (auto it = entries.begin(); it != entries.end(); ++it) {
+        if (it->second == hdr.child_inode) {
+            entries.erase(it);
+            break;
+        }
+    }
+
+    return FsError::Ok;
+}
+
 } // namespace
 
 namespace recovery {
@@ -135,6 +162,8 @@ FsError replay_log(FileSystemState& fs) {
             } else if (type == RecordType::Data) {
                 data_blocks[hdr.owner_inode][hdr.logical_block_index] =
                     std::string(reinterpret_cast<const char*>(payload.data()), payload.size());
+            } else if (type == RecordType::Tombstone) {
+                err = apply_tombstone_record(fs, payload);
             } else {
                 err = FsError::Ok;
             }
