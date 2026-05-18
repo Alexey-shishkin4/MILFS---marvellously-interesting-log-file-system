@@ -47,6 +47,8 @@ public:
 
     FsError flush();
 
+    FsError zero_segment(uint32_t segment_id);
+
 private:
     uint64_t segment_offset_bytes(uint32_t segment_id) const;
     uint64_t block_offset_bytes(uint32_t segment_id, uint32_t block_index) const;

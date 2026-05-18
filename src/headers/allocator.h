@@ -36,6 +36,11 @@ public:
                             uint32_t block_count,
                             uint64_t record_seq_no);
 
+  uint32_t free_segment_count() const noexcept;
+  bool has_low_free_space(uint32_t min_free_segments = 2) const noexcept;
+  std::optional<uint32_t> choose_gc_candidate() const;
+  FsError mark_segment_free(uint32_t segment_id);
+
 private:
   FsError open_next_free_segment();
   void seal_active_segment();

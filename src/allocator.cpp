@@ -159,3 +159,63 @@ void Allocator::seal_active_segment() {
 
   active_segment_id_.reset();
 }
+
+uint32_t Allocator::free_segment_count() const noexcept
+{
+    return static_cast<uint32_t>(free_segments_.size());
+}
+
+bool Allocator::has_low_free_space(uint32_t min_free_segments) const noexcept
+{
+    return free_segments_.size() < min_free_segments;
+}
+
+std::optional<uint32_t> Allocator::choose_gc_candidate() const
+{
+    for (const auto& segment : segments_) {
+        if (segment.segment_id == 0) {
+            continue;
+        }
+
+        if (active_segment_id_.has_value()
+            && *active_segment_id_ == segment.segment_id) {
+            continue;
+        }
+
+        if (segment.state == static_cast<uint32_t>(SegmentState::Sealed)) {
+            return segment.segment_id;
+        }
+    }
+
+    return std::nullopt;
+}
+
+FsError Allocator::mark_segment_free(uint32_t segment_id)
+{
+    if (segment_id == 0 || segment_id >= segments_.size()) {
+        return FsError::Internal;
+    }
+
+    if (active_segment_id_.has_value() && *active_segment_id_ == segment_id) {
+        return FsError::Internal;
+    }
+
+    auto& segment = segments_[segment_id];
+
+    if (segment.state == static_cast<uint32_t>(SegmentState::Free)) {
+        return FsError::Ok;
+    }
+
+    segment.state = static_cast<uint32_t>(SegmentState::Free);
+    segment.sequence_no = 0;
+    segment.timestamp = 0;
+    segment.data_start_block = sb_.reserved_blocks_per_segment;
+    segment.write_block_offset = sb_.reserved_blocks_per_segment;
+    segment.used_blocks = 0;
+    segment.free_blocks = sb_.blocks_per_segment - sb_.reserved_blocks_per_segment;
+    segment.record_count = 0;
+
+    free_segments_.push_back(segment_id);
+
+    return FsError::Ok;
+}

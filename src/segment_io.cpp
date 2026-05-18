@@ -331,3 +331,44 @@ FsError SegmentIO::write_segment_header(const SegmentHeader& header) {
     std::memcpy(block.data(), &header, sizeof(header));
     return write_all_at(block.data(), block.size(), segment_offset_bytes(header.segment_id));
 }
+
+FsError SegmentIO::zero_segment(uint32_t segment_id)
+{
+    if (!is_open()) {
+        return FsError::IoError;
+    }
+
+    if (segment_id == 0 || segment_id >= sb_.segment_count) {
+        return FsError::Internal;
+    }
+
+    std::vector<std::byte> zero_block(sb_.block_size_bytes);
+
+    for (uint32_t block = sb_.reserved_blocks_per_segment;
+         block < sb_.blocks_per_segment;
+         ++block) {
+        const uint64_t off = block_offset_bytes(segment_id, block);
+        FsError err = write_all_at(zero_block.data(), zero_block.size(), off);
+        if (err != FsError::Ok) {
+            return err;
+        }
+    }
+
+    SegmentHeader hdr{};
+    hdr.segment_id = segment_id;
+    hdr.state = static_cast<uint32_t>(SegmentState::Free);
+    hdr.sequence_no = 0;
+    hdr.timestamp = 0;
+    hdr.data_start_block = sb_.reserved_blocks_per_segment;
+    hdr.write_block_offset = sb_.reserved_blocks_per_segment;
+    hdr.used_blocks = 0;
+    hdr.free_blocks = sb_.blocks_per_segment - sb_.reserved_blocks_per_segment;
+    hdr.record_count = 0;
+
+    FsError err = write_segment_header(hdr);
+    if (err != FsError::Ok) {
+        return err;
+    }
+
+    return flush();
+}
