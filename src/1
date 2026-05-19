@@ -85,18 +85,14 @@ void printStatus(FsError err) {
 void printHelp() {
     std::cout
         << "Available commands:\n"
-        << "  help                         - show this help\n"
-        << "  mkdir <path>                 - create directory\n"
-        << "  create <path>                - create empty file\n"
-        << "  write <path> <data>          - write data to file\n"
-        << "  cat <path>                   - print file contents\n"
-        << "  read <path>                  - same as cat\n"
-        << "  ls [path]                    - list directory contents (default: /)\n"
-        << "  rm <path>                    - remove file\n"
-        << "  rename <old_path> <new_path> - rename file or directory\n"
-        << "  truncate <path> <size>       - truncate file to size\n"
-        << "  gc                           - run one garbage collection pass\n"
-        << "  exit                         - exit program\n";
+        << "  help                      - show this help\n"
+        << "  mkdir <path>              - create directory\n"
+        << "  create <path>             - create empty file\n"
+        << "  write <path> <data>       - write data to file\n"
+        << "  cat <path>                - print file contents\n"
+        << "  read <path>               - same as cat\n"
+        << "  ls [path]                 - list directory contents (default: /)\n"
+        << "  exit                      - exit program\n";
 }
 
 int cli_main() {
@@ -244,37 +240,7 @@ int cli_main() {
             continue;
         }
 
-
-        if (command == "gc") {
-            if (tokens.size() != 1) {
-                std::cout << "usage: gc\n";
-                continue;
-            }
-
-            GcStats stats{};
-
-            FsError err = fs_gc_once(g_fs, stats);
-
-            if (err != FsError::Ok) {
-                printStatus(err);
-                continue;
-            }
-
-            std::cout << "GC done\n";
-            std::cout << "cleaned_segments = "
-                      << stats.cleaned_segments << '\n';
-            std::cout << "moved_records = "
-                      << stats.moved_records << '\n';
-            std::cout << "moved_data_records = "
-                      << stats.moved_data_records << '\n';
-            std::cout << "skipped_records = "
-                      << stats.skipped_records << '\n';
-
-            continue;
-        }
-
         std::cout << "Unknown command: " << command << '\n';
-
     }
 
     return 0;

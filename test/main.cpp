@@ -2,10 +2,12 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 int cli_main();
 
 namespace fs = std::filesystem;
+static const fs::path kMilfsImage = "milfs.img";
 
 // Pair: input_file <-> expected_output_file
 struct IoFilePair {
@@ -51,8 +53,18 @@ std::vector<IoFilePair> collect_tests(const std::string& tests_dir, const std::s
     return pairs;
 }
 
+class CLITest : public ::testing::TestWithParam<IoFilePair> {
+protected:
+    void SetUp() override {
+        std::error_code ec;
+        fs::remove(kMilfsImage, ec);
+    }
 
-class CLITest : public ::testing::TestWithParam<IoFilePair> {};
+    void TearDown() override {
+        std::error_code ec;
+        fs::remove(kMilfsImage, ec);
+    }
+};
 
 TEST_P(CLITest, RunCLI) {
     IoFilePair param = GetParam();
