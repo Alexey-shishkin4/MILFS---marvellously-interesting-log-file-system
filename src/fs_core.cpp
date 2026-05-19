@@ -4,6 +4,7 @@
 #include "headers/metadata_log.h"
 #include "headers/recovery.h"
 #include "headers/segment_io.h"
+#include "headers/gc.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -112,6 +113,36 @@ bool is_env_false(const char* name) {
     }
     return std::string(value) == "0";
 }
+
+
+thread_local bool g_inside_auto_gc = false;
+
+bool auto_gc_enabled()
+{
+    const char* value = std::getenv("MILFS_AUTO_GC");
+
+    if (value == nullptr) {
+        return true;
+    }
+
+    return std::string(value) != "0";
+}
+
+uint32_t auto_gc_min_free_segments()
+{
+    const char* value = std::getenv("MILFS_GC_MIN_FREE_SEGMENTS");
+
+    if (value == nullptr) {
+        return 2;
+    }
+
+    try {
+        return static_cast<uint32_t>(std::stoul(value));
+    } catch (...) {
+        return 2;
+    }
+}
+
 
 } // namespace
 
@@ -576,21 +607,55 @@ FsError fs_append_record(FileSystemState& fs,
                          uint32_t logical_block_index,
                          const std::byte* payload,
                          std::size_t payload_size,
-                         LogAddress& out_addr) {
+                         LogAddress& out_addr)
+{
     if (fs.segment_io == nullptr || fs.allocator == nullptr) {
         return FsError::Internal;
     }
 
+    if (auto_gc_enabled() && !g_inside_auto_gc) {
+        const uint32_t min_free_segments = auto_gc_min_free_segments();
+
+        if (fs.allocator->has_low_free_space(min_free_segments)) {
+            g_inside_auto_gc = true;
+
+            GcStats stats{};
+            FsError gc_err = fs_gc_once(fs, stats);
+
+            g_inside_auto_gc = false;
+
+            if (gc_err != FsError::Ok) {
+                return gc_err;
+            }
+
+            if (stats.cleaned_segments > 0) {
+                std::cout << "[AUTO-GC] cleaned_segments="
+                          << stats.cleaned_segments
+                          << ", moved_records="
+                          << stats.moved_records
+                          << ", moved_data_records="
+                          << stats.moved_data_records
+                          << ", skipped_records="
+                          << stats.skipped_records
+                          << "\n";
+            }
+        }
+    }
+
     RecordHeader hdr{};
-    FsError err = fs.segment_io->append_record(*fs.allocator,
-                                               type,
-                                               key,
-                                               owner_inode,
-                                               logical_block_index,
-                                               payload,
-                                               payload_size,
-                                               out_addr,
-                                               &hdr);
+
+    FsError err = fs.segment_io->append_record(
+        *fs.allocator,
+        type,
+        key,
+        owner_inode,
+        logical_block_index,
+        payload,
+        payload_size,
+        out_addr,
+        &hdr
+    );
+
     if (err != FsError::Ok) {
         return err;
     }
@@ -606,6 +671,7 @@ FsError fs_append_record(FileSystemState& fs,
 
     return FsError::Ok;
 }
+
 
 FsError fs_read_record(const FileSystemState& fs,
                        const LogAddress& addr,
